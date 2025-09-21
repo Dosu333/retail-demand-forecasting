@@ -1,5 +1,5 @@
-streamlit
-pandas
-numpy
-scikit-learn
-huggingface_hub
+streamlit==1.37.1
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.5.1
+huggingface_hub==0.35.0
