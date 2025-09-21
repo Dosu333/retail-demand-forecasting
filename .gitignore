@@ -3,4 +3,3 @@ new_file.csv
 catboost_info/
 __pycache__/
 **.pkl
-/**.pkl

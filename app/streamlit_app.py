@@ -4,9 +4,6 @@ import numpy as np
 import pickle
 from datetime import datetime
 from preprocess import RetailPreprocessor
-from huggingface_hub import hf_hub_download
-import requests
-import os
 
 
 # ------------------------
@@ -23,15 +20,8 @@ st.set_page_config(
 # ------------------------
 @st.cache_resource
 def load_pipeline():
-    model_path = hf_hub_download(
-        repo_id="oladosularinde/retail-demand",
-        filename="demand_forecast_pipeline.pkl"
-    )
-
-    with open(model_path, "rb") as f:
-        pipeline = pickle.load(f)
-
-    return pipeline
+    with open("demand_forecast_pipeline.pkl", "rb") as f:
+        return pickle.load(f)
 
 pipeline = load_pipeline()
 
@@ -49,49 +39,29 @@ tab1, tab2 = st.tabs(["📂 Batch Predictions", "🛠 Single Prediction"])
 # ------------------------
 with tab1:
     st.subheader("Upload Your Data")
-    required_columns = [
-        "Date", "Store ID", "Product ID", "Category", "Region",
-        "Inventory Level", "Units Sold", "Units Ordered",
-        "Price", "Discount", "Weather Condition", "Promotion",
-        "Competitor Pricing", "Seasonality", "Epidemic"
-    ]
-
-    uploaded_file = st.file_uploader(
-        "Upload CSV with raw retail data.",
-        type=["csv"]
-    )
+    uploaded_file = st.file_uploader("Upload CSV with raw retail data", type=["csv"])
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
         st.write("### Data Preview", df.head())
 
-        # Check for missing columns
-        missing_cols = [col for col in required_columns if col not in df.columns]
+        if st.button("Run Predictions"):
+            # Predict
+            preds_log = pipeline.predict(df)
+            preds_real = np.expm1(preds_log)
 
-        if missing_cols:
-            st.error(
-                f"⚠️ The uploaded file is missing these required columns:\n\n- " +
-                "\n- ".join(missing_cols)
+            df["Predicted Demand"] = np.ceil(preds_real).astype(int)
+            st.success("Predictions complete ✅")
+            st.write(df.head())
+
+            # Download button
+            csv = df.to_csv(index=False)
+            st.download_button(
+                label="Download Predictions as CSV",
+                data=csv,
+                file_name="demand_predictions.csv",
+                mime="text/csv"
             )
-            st.stop()
-        else:
-            if st.button("Run Predictions"):
-                # Predict
-                preds_log = pipeline.predict(df)
-                preds_real = np.expm1(preds_log)
-
-                df["Predicted Demand"] = np.ceil(preds_real).astype(int)
-                st.success("Predictions complete ✅")
-                st.write(df.head())
-
-                # Download button
-                csv = df.to_csv(index=False)
-                st.download_button(
-                    label="Download Predictions as CSV",
-                    data=csv,
-                    file_name="demand_predictions.csv",
-                    mime="text/csv"
-                )
 
 # ------------------------
 # Tab 2: Single Prediction
