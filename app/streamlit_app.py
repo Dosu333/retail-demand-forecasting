@@ -56,6 +56,36 @@ with tab1:
         "Competitor Pricing", "Seasonality", "Epidemic"
     ]
 
+    # Create a sample template DataFrame
+    sample_data = pd.DataFrame([{
+        "Date": "2025-01-01",
+        "Store ID": "S0001",
+        "Product ID": "P0001",
+        "Category": "Groceries",
+        "Region": "North",
+        "Inventory Level": 100,
+        "Units Sold": 10,
+        "Units Ordered": 15,
+        "Price": 50.0,
+        "Discount": 5.0,
+        "Weather Condition": "Sunny",
+        "Promotion": 1,
+        "Competitor Pricing": 48.0,
+        "Seasonality": "Winter",
+        "Epidemic": 0
+    }])
+
+    # Convert to CSV string
+    sample_csv = sample_data.to_csv(index=False)
+
+    # Add download button for template
+    st.download_button(
+        label="📥 Download Sample CSV Template",
+        data=sample_csv,
+        file_name="sample_retail_data.csv",
+        mime="text/csv"
+    )
+
     uploaded_file = st.file_uploader(
         "Upload CSV with raw retail data.",
         type=["csv"]
@@ -76,7 +106,6 @@ with tab1:
             st.stop()
         else:
             if st.button("Run Predictions"):
-                # Predict
                 preds_log = pipeline.predict(df)
                 preds_real = np.expm1(preds_log)
 
@@ -84,7 +113,6 @@ with tab1:
                 st.success("Predictions complete ✅")
                 st.write(df.head())
 
-                # Download button
                 csv = df.to_csv(index=False)
                 st.download_button(
                     label="Download Predictions as CSV",
